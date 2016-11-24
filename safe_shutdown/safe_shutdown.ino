@@ -1,5 +1,5 @@
 #include <DigiKeyboard.h>
-#include <TinyWireS.h>
+//#include <TinyWireS.h> commented this out, as there is an issue compiling for the ATTiny167 right now
 #define I2C_SLAVE_ADDRESS 0x4
 #define MAX_TASKS 8
 #define CHECK_STATE_INTERVAL 500
@@ -9,19 +9,19 @@
 
 typedef void(*TaskFunction)(); // Function pointer
 
-int ADCPin = A1;
+int ADCPin = A5;
 int SwitchPin = PB3;
 int AlivePin = PB4;
 
 uint8_t vIndex = 1;
-uint16_t voltages[5] = { 0 };
+int voltages[5] = { 0 };
 
 // ----- STATE -----
 typedef enum state {BOOTUP, RUNNING, SHUTDOWN} State;
 
 typedef struct {
   State current_state;
-  uint16_t battery_voltage;
+  int battery_voltage;
 } SystemState;
 
 SystemState system_state;
@@ -90,8 +90,12 @@ void ExecuteTasks() {
  */
 void readBatteryVoltage() {
   // Read the voltage
-  DigiKeyboard.println("Reading battery...");
   voltages[vIndex] = analogRead(ADCPin);
+  float av = voltages[vIndex] * (5.00 / 1023.00);
+  char buffer[16];
+  sprintf(buffer, "Battery: %d", av); // this doesn't work yet
+  DigiKeyboard.println(buffer);
+
   vIndex++;
   if (vIndex > 4) {
     vIndex = 0;
@@ -121,6 +125,7 @@ void checkState() {
 
 // ----- I2C -----
 /* Writes the SystemState struct to the I2C bus */
+/*
 void tws_requestEvent() {
   // Copy the system_state struct into a byte array
   void* p = &system_state;
@@ -132,16 +137,18 @@ void tws_requestEvent() {
     TinyWireS.send(buffer[i]);
   }
 }
+*/
 /* Used to take instructions from the I2C master python script
  * eg. change polling frequency of battery Reads
  * eg. enable/disable power switch
  */
+ /*
 void tws_receiveEvent(uint8_t howMany) {
   while(TinyWireS.available()) {
     int data = TinyWireS.receive();
   }
 }
-
+*/
 // ----- START -----
 void setup() {
   DigiKeyboard.println("Running...");
@@ -150,6 +157,7 @@ void setup() {
   // Initialise the pins
   pinMode(ADCPin, INPUT);
   pinMode(SwitchPin, INPUT);
+  analogReference(DEFAULT);
   //pinMode(AlivePin, OUTPUT);
   //digitalWrite(AlivePin, HIGH);
   DigiKeyboard.println("Pins OK");
@@ -157,25 +165,24 @@ void setup() {
   // Create some tasks
   int task_result = createTask(readBatteryVoltage, BATTERY_READ_INTERVAL, BATTERY_READ_DELAY, -1);
   int task_result2 = createTask(checkState, CHECK_STATE_INTERVAL, CHECK_STATE_DELAY, -1);
-  
+
   if (task_result + task_result2 == 2) {
     DigiKeyboard.println("Tasks OK");
   }
   else {
     DigiKeyboard.println("Problem creating one or more tasks!");
   }
-  
+
   // Setup the I2C bus
+  /*
   TinyWireS.begin(I2C_SLAVE_ADDRESS);
   TinyWireS.onReceive(tws_receiveEvent);
   TinyWireS.onRequest(tws_requestEvent);
   DigiKeyboard.println("I2C OK");
-
+*/
 }
 
 void loop() {
   ExecuteTasks();
-  TinyWireS_stop_check();
+  //TinyWireS_stop_check();
 }
-
-
