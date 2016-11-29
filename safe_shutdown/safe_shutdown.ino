@@ -92,8 +92,10 @@ void readBatteryVoltage() {
   // Read the voltage
   voltages[vIndex] = analogRead(ADCPin);
   float av = voltages[vIndex] * (5.00 / 1023.00);
-  char buffer[16];
-  sprintf(buffer, "Battery: %d", av); // this doesn't work yet
+  char buffer[16] = "Battery: ";
+  char str[8];
+  dtostrf(av, 4, 2, str);
+  strcat(buffer, str);
   DigiKeyboard.println(buffer);
 
   vIndex++;
