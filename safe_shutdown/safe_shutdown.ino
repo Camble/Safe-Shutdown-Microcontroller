@@ -65,7 +65,7 @@ int createTask(TaskFunction function, int interval, int delay, int repeat) {
   return 1; // Success
 }
 
-void ExecuteTasks() {
+void executeTasks() {
   if (num_tasks == 0) { return; }
   for (int i = 0; i <= num_tasks; i++) {
     // Execute infinite tasks and those whose max_count has not been reached
@@ -91,10 +91,10 @@ void ExecuteTasks() {
 void readBatteryVoltage() {
   // Read the voltage
   voltages[vIndex] = analogRead(ADCPin);
-  float av = voltages[vIndex] * (5.00 / 1023.00);
+  float v = voltages[vIndex] * (5.00 / 1023.00);
   char buffer[16] = "Battery: ";
   char str[8];
-  dtostrf(av, 4, 2, str);
+  dtostrf(v, 4, 2, str);
   strcat(buffer, str);
   DigiKeyboard.println(buffer);
 
@@ -185,6 +185,6 @@ void setup() {
 }
 
 void loop() {
-  ExecuteTasks();
+  executeTasks();
   //TinyWireS_stop_check();
 }
