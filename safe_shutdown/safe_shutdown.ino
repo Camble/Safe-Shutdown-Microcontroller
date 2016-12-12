@@ -1,5 +1,5 @@
 #include <DigiKeyboard.h>
-//#include <TinyWireS.h> commented this out, as there is an issue compiling for the ATTiny167 right now
+#include <TinyWireS.h> commented this out, as there is an issue compiling for the ATTiny167 right now
 #define I2C_SLAVE_ADDRESS 0x4
 #define MAX_TASKS 8
 #define CHECK_STATE_INTERVAL 500
@@ -92,10 +92,15 @@ void readBatteryVoltage() {
   // Read the voltage
   voltages[vIndex] = analogRead(ADCPin);
   float v = voltages[vIndex] * (5.00 / 1023.00);
-  char buffer[16] = "Battery: ";
-  char str[8];
-  dtostrf(v, 4, 2, str);
-  strcat(buffer, str);
+  char str_v[8];
+  char str_a[8];
+  dtostrf(v, 4, 2, str_v);
+  sprintf(str_a, "%d", voltages[vIndex]);
+  char buffer[24] = "Battery: ";
+  strcat(buffer, str_v);
+  strcat(buffer, "v (");
+  strcat(buffer, str_a);
+  strcat(buffer, ")");
   DigiKeyboard.println(buffer);
 
   vIndex++;
@@ -114,7 +119,7 @@ void readBatteryVoltage() {
 /* Checks the state of the power switch
  */
 void checkState() {
-  DigiKeyboard.println("Checking switch...");
+  //DigiKeyboard.println("Checking switch...");
 
   int switch_state = digitalRead(SwitchPin);
   if (switch_state == 1) { // subject to change (inverse)
