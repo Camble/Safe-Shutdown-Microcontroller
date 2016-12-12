@@ -1,5 +1,5 @@
 #include <DigiKeyboard.h>
-#include <TinyWireS.h> commented this out, as there is an issue compiling for the ATTiny167 right now
+#include <TinyWireS.h>
 #define I2C_SLAVE_ADDRESS 0x4
 #define MAX_TASKS 8
 #define CHECK_STATE_INTERVAL 500
