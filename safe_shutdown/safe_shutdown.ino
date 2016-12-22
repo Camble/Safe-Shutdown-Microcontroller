@@ -1,11 +1,12 @@
 #include <DigiKeyboard.h>
 #include <TinyWireS.h>
 #define I2C_SLAVE_ADDRESS 0x4
-#define MAX_TASKS 8
+#define MAX_TASKS 2
+#define MAX_BATTERY_READS 4
 #define CHECK_STATE_INTERVAL 500
 #define CHECK_STATE_DELAY 5000
 #define BATTERY_READ_INTERVAL 1000
-#define BATTERY_READ_DELAY 0
+#define BATTERY_READ_DELAY 1000
 
 typedef void(*TaskFunction)(); // Function pointer
 
@@ -13,15 +14,18 @@ int ADCPin = A5;
 int SwitchPin = PB3;
 int AlivePin = PB4;
 
-uint8_t vIndex = 1;
-int voltages[5] = { 0 };
+// ----- BATTERY -----
+
+uint8_t vIndex = 0;
+int voltages[MAX_BATTERY_READS] = { 1 };
+int vTotal = MAX_BATTERY_READS;
 
 // ----- STATE -----
 typedef enum state {BOOTUP, RUNNING, SHUTDOWN} State;
 
 typedef struct {
   State current_state;
-  int battery_voltage;
+  int average_voltage;
 } SystemState;
 
 SystemState system_state;
@@ -89,8 +93,21 @@ void executeTasks() {
  * SystemState.battery_voltage
  */
 void readBatteryVoltage() {
-  // Read the voltage
+  //DigiKeyboard.println("Reading battery...");
+  // Increment the voltages[] index
+  vIndex++;
+  if (vIndex >= MAX_BATTERY_READS) {
+    vIndex = 0;
+  }
+  // Subtract the oldest value
+  vTotal -= voltages[vIndex];
+
+  // Store the latest value
   voltages[vIndex] = analogRead(ADCPin);
+  vTotal += voltages[vIndex];
+
+  // Some debugging output. This can be removed from the final sketch.
+  /*
   float v = voltages[vIndex] * (5.00 / 1023.00);
   char str_v[8];
   char str_a[8];
@@ -102,18 +119,9 @@ void readBatteryVoltage() {
   strcat(buffer, str_a);
   strcat(buffer, ")");
   DigiKeyboard.println(buffer);
+  */
+  DigiKeyboard.println(vTotal);
 
-  vIndex++;
-  if (vIndex > 4) {
-    vIndex = 0;
-  }
-  // Total the values
-  int sum = 0;
-  for (int i = 1; i < 5; i++) {
-    sum += voltages[i];
-  }
-  // Re-calculate the average
-  system_state.battery_voltage = sum / 5;
 }
 
 /* Checks the state of the power switch
@@ -131,8 +139,9 @@ void checkState() {
 }
 
 // ----- I2C -----
-/* Writes the SystemState struct to the I2C bus */
-/*
+/* Writes the SystemState struct to the I2C bus
+ */
+
 void tws_requestEvent() {
   // Copy the system_state struct into a byte array
   void* p = &system_state;
@@ -144,18 +153,17 @@ void tws_requestEvent() {
     TinyWireS.send(buffer[i]);
   }
 }
-*/
+
 /* Used to take instructions from the I2C master python script
  * eg. change polling frequency of battery Reads
  * eg. enable/disable power switch
  */
- /*
 void tws_receiveEvent(uint8_t howMany) {
   while(TinyWireS.available()) {
     int data = TinyWireS.receive();
   }
 }
-*/
+
 // ----- START -----
 void setup() {
   DigiKeyboard.println("Running...");
@@ -181,15 +189,13 @@ void setup() {
   }
 
   // Setup the I2C bus
-  /*
   TinyWireS.begin(I2C_SLAVE_ADDRESS);
   TinyWireS.onReceive(tws_receiveEvent);
   TinyWireS.onRequest(tws_requestEvent);
   DigiKeyboard.println("I2C OK");
-*/
 }
 
 void loop() {
   executeTasks();
-  //TinyWireS_stop_check();
+  TinyWireS_stop_check();
 }
