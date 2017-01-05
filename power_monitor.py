@@ -31,6 +31,7 @@ def getState():
 def compareVoltage():
   # warn if warn_voltage reached
   # shutdown shutdown_voltage reached
+  pass
 
 while True:
   time.sleep(1)
