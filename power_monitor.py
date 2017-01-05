@@ -24,7 +24,7 @@ def configSlave(value):
   return -1
 
 def getState():
-  system_state = ""
+  system_state = "0000"
   for i in range(len(system_state)):
     system_state[i] += chr(bus.read_byte(address))
 

@@ -147,7 +147,6 @@ void readBatteryVoltage() {
   DigiKeyboard.println(buffer);
   */
   DigiKeyboard.println(vTotal);
-
 }
 
 /* Checks the state of the power switch
