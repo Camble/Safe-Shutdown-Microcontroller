@@ -10,9 +10,35 @@
 
 typedef void(*TaskFunction)(); // Function pointer
 
-int ADCPin = A5;
-int SwitchPin = PB3;
-int AlivePin = PB4;
+/* PIN DESIGNATIONS
+** INTERNAL **
+* pinBattery:           PA1
+* pinSwitch:
+* pinKeepAlive:         PB3
+
+** RASPBERRY PI GPIO **
+* Keep-Alive from Pi:   PA3
+* Shutdown to Pi:       PA7
+* I²C SDA:              PB0
+* I²C SCL:              PB2
+
+** ISP **
+* MOSI:                 PA4
+* MISO:                 PA2
+* SCK:                  PA5
+*/
+
+int pinBattery = PA1;
+int pinSwitch = PB7;
+int pinKeepAlive = PB3;
+int gpioKeepAlive = PA3;
+int gpioShutdown = PA7;
+int pinSDA = PB0;
+int pinSCL = PB3;
+
+int pinMOSI = PA4;
+int pinMISO = PA2;
+int pinSCK = PA5;
 
 // ----- BATTERY -----
 
@@ -103,7 +129,7 @@ void readBatteryVoltage() {
   vTotal -= voltages[vIndex];
 
   // Store the latest value
-  voltages[vIndex] = analogRead(ADCPin);
+  voltages[vIndex] = analogRead(pinBattery);
   vTotal += voltages[vIndex];
 
   // Some debugging output. This can be removed from the final sketch.
@@ -129,7 +155,7 @@ void readBatteryVoltage() {
 void checkState() {
   //DigiKeyboard.println("Checking switch...");
 
-  int switch_state = digitalRead(SwitchPin);
+  int switch_state = digitalRead(pinSwitch);
   if (switch_state == 1) { // subject to change (inverse)
     system_state.current_state = SHUTDOWN;
   }
@@ -170,11 +196,11 @@ void setup() {
   system_state.current_state = BOOTUP;
 
   // Initialise the pins
-  pinMode(ADCPin, INPUT);
-  pinMode(SwitchPin, INPUT);
+  pinMode(pinBattery, INPUT);
+  pinMode(pinSwitch, INPUT);
   analogReference(DEFAULT);
-  //pinMode(AlivePin, OUTPUT);
-  //digitalWrite(AlivePin, HIGH);
+  //pinMode(pinKeepAlive, OUTPUT);
+  //digitalWrite(pinKeepAlive, HIGH);
   DigiKeyboard.println("Pins OK");
 
   // Create some tasks

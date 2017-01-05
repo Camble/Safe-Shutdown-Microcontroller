@@ -1,50 +1,40 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 # title: I2C Master Script
-# desription: Periodically requests voltage values from I2C slave
+# desription: Periodically requests information from Safe Shutdown v2.0
 # author: Camble
 # date 2016-11-15
 # version: 0.1
-# source: https://github.com/Camble/RPi-I2C
+# source: https://github.com/Camble/Safe-Shutdown-Microcontroller
 
 import smbus
 import struct
 import time
 
 bus = smbus.SMBus(1)
-
-voltage = 0;
-
-# This is the address we setup in the Arduino Program
+system_state = ""
+voltage = 0
+warn_voltage = 3.3
+shutdown_voltage = 3.2
 address = 0x04
 
-def writeNumber(value):
-  bus.write_byte(address, value)
-  # bus.write_byte_data(address, 0, value)
+def configSlave(value):
+  # write some settings to the slave via I2C
+  # bus.write_byte(address, value)
   return -1
 
-def getVoltage():
-  # write V to request voltage
-  time.sleep(0.05)
-  data = [None] * 2
-  for i in range(2):
-    data[i] = chr(bus.read_byte(address))
-  #value = struct.unpack("<h", data)
-  #value = struct.unpack(">h", data)
-  value  = data[0] << 8 | data[1]
-  return value
+def getState():
+  system_state = ""
+  for i in range(len(system_state)):
+    system_state[i] += chr(bus.read_byte(address))
+
+ def compareVoltage():
+  # warn if warn_voltage reached
+  # shutdown shutdown_voltage reached
 
 while True:
-  var = input("Request? ")
-  if not var:
-    continue
+  time.sleep(1)
+  getVoltage()
+  compareVoltage()
 
-  # writeNumber(var)
-  print "Sent \"" + str(var) + "\" to the ATTiny"
-  time.sleep(0.1)
-
-  voltage = getVoltage()
-  print "Average voltage: " + str(voltage)
-  #print "Values used: ",
-  #for i in range(len(voltages)):
-  #  print voltages[i],
+  print "system_state contents: " + str(system_state)
