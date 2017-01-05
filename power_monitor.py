@@ -35,7 +35,7 @@ def compareVoltage():
 
 while True:
   time.sleep(1)
-  getVoltage()
+  getState()
   compareVoltage()
 
   print "system_state contents: " + str(system_state)
