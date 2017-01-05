@@ -28,7 +28,7 @@ def getState():
   for i in range(len(system_state)):
     system_state[i] += chr(bus.read_byte(address))
 
- def compareVoltage():
+def compareVoltage():
   # warn if warn_voltage reached
   # shutdown shutdown_voltage reached
 
